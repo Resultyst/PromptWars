@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowSense — Fan App | M. Chinnaswamy Stadium</title>
+  <meta name="description" content="Your real-time crowd guide for M. Chinnaswamy Stadium. Smart routing, queue times, and live alerts — all in your pocket.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    /* ── Fan App Styles ──────────────────────────────────────────── */
+    body {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at 30% 0%, rgba(0,191,255,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 90%, rgba(0,68,255,0.1) 0%, transparent 50%),
+                  #04080F;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px 40px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Back nav strip */
+    .fan-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      max-width: 420px;
+      margin-bottom: 20px;
+    }
+
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .fan-nav-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .fan-nav-title span { color: var(--accent); }
+
+    /* Phone frame */
+    .phone-frame {
+      width: 100%;
+      max-width: 390px;
+      background: #0A0F1A;
+      border-radius: 40px;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.05),
+        0 30px 80px rgba(0,0,0,0.7),
+        0 0 60px rgba(0,191,255,0.08);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Status bar */
+    .phone-status {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .status-right { display: flex; gap: 6px; align-items: center; font-size: 11px; }
+
+    /* App header */
+    .app-header {
+      padding: 12px 20px 14px;
+      background: linear-gradient(180deg, rgba(0,191,255,0.08) 0%, transparent 100%);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .app-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #00BFFF, #0044FF);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 14px;
+    }
+
+    .app-logo-text {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+    .app-logo-text span { color: var(--accent); }
+
+    .app-notif-bell {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: grid; place-items: center;
+      font-size: 16px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      width: 16px; height: 16px;
+      background: var(--critical);
+      border-radius: 50%;
+      font-size: 9px;
+      font-weight: 700;
+      display: grid; place-items: center;
+      color: #fff;
+    }
+
+    .venue-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .live-chip {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: rgba(255,34,85,0.12);
+      border: 1px solid rgba(255,34,85,0.3);
+      border-radius: 100px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--critical);
+      font-family: var(--font-mono);
+    }
+
+    /* App content */
+    .app-content {
+      padding: 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 680px;
+    }
+
+    /* My Zone card */
+    .zone-card {
+      padding: 18px;
+      background: linear-gradient(135deg, rgba(0,191,255,0.1), rgba(0,68,255,0.05));
+      border: 1px solid rgba(0,191,255,0.2);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .zone-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 120px; height: 120px;
+      background: rgba(0,191,255,0.08);
+      border-radius: 50%;
+    }
+
+    .zone-card-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-family: var(--font-mono);
+      margin-bottom: 8px;
+    }
+
+    .zone-card-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .zone-card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+    }
+
+    .zone-density-col { display: flex; flex-direction: column; gap: 4px; }
+    .zone-density-label { font-size: 10px; color: var(--text-secondary); }
+    .zone-density-val { font-family: var(--font-mono); font-size: 20px; font-weight: 600; }
+
+    .zone-mini-bar {
+      height: 6px;
+      width: 80px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .zone-mini-fill { height: 100%; border-radius: 3px; }
+
+    /* Alert banner */
+    .alert-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 14px 16px;
+      background: rgba(255,34,85,0.08);
+      border: 1px solid rgba(255,34,85,0.25);
+      border-radius: 16px;
+      animation: pulseCard 2s infinite;
+    }
+
+    @keyframes pulseCard {
+      0%,100% { border-color: rgba(255,34,85,0.25); }
+      50%      { border-color: rgba(255,34,85,0.55); }
+    }
+
+    .alert-banner-icon { font-size: 22px; }
+    .alert-banner-title { font-size: 13px; font-weight: 700; color: var(--critical); margin-bottom: 3px; }
+    .alert-banner-body { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* Route suggestion */
+    .route-card {
+      padding: 18px;
+      background: rgba(0,230,160,0.06);
+      border: 1px solid rgba(0,230,160,0.2);
+      border-radius: 20px;
+    }
+
+    .route-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ok);
+      font-family: var(--font-mono);
+      margin-bottom: 10px;
+    }
+
+    .route-suggestion {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      background: rgba(0,230,160,0.06);
+      border: 1px solid rgba(0,230,160,0.15);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .route-suggestion:hover { background: rgba(0,230,160,0.12); }
+
+    .route-icon { font-size: 22px; }
+    .route-text { flex: 1; }
+    .route-gate { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .route-detail { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .route-saving { font-family: var(--font-mono); font-size: 12px; color: var(--ok); font-weight: 600; }
+
+    .navigate-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #00E6A0, #00BFFF);
+      border: none;
+      border-radius: 14px;
+      color: #04080F;
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      margin-top: 10px;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(0,230,160,0.3);
+    }
+    .navigate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,230,160,0.4); }
+
+    /* Queue times */
+    .queues-card {
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .queue-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .queue-row:last-child { border-bottom: none; }
+
+    .queue-name { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .queue-icon { font-size: 16px; }
+    .queue-wait { font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+    .queue-bar-wrap { width: 60px; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .queue-bar-fill { height: 100%; border-radius: 2px; }
+
+    /* Push notifications */
+    .notifs-card {
+      padding: 16px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+    }
+
+    .fan-notif {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .fan-notif:last-child { border-bottom: none; }
+
+    .fan-notif-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      display: grid; place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .fn-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+    .fn-body { font-size: 12px; color: var(--text-secondary); line-height: 1.4; }
+    .fn-time { font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 3px; }
+
+    /* Bottom Nav */
+    .phone-bottom-nav {
+      display: flex;
+      border-top: 1px solid var(--border);
+      background: rgba(8,14,26,0.95);
+      padding: 8px 0 16px;
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 8px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      transition: all 0.2s;
+    }
+
+    .nav-tab-icon { font-size: 20px; }
+    .nav-tab-label { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); }
+    .nav-tab.active .nav-tab-label { color: var(--accent); }
+    .nav-tab.active .nav-tab-icon { filter: drop-shadow(0 0 4px rgba(0,191,255,0.6)); }
+
+    /* Phone home indicator */
+    .phone-home {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(8,14,26,0.95);
+      padding-bottom: 4px;
+    }
+    .home-bar {
+      width: 100px; height: 4px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+    }
+
+    /* Label below phone */
+    .device-label {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* Live update badge */
+    .updating-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--ok);
+    }
+
+    /* Section divider */
+    .fan-section-divider {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0;
+    }
+    .fan-section-divider span { font-size: 11px; color: var(--text-dim); white-space: nowrap; }
+    .fan-section-divider::before, .fan-section-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Top Nav -->
+<div class="fan-nav">
+  <a href="index.html" class="back-btn">← Ops Dashboard</a>
+  <span class="fan-nav-title">Flow<span>Sense</span> Fan App</span>
+</div>
+
+<div class="fan-section-divider"><span>Simulated mobile experience</span></div>
+
+<!-- Phone Frame -->
+<div class="phone-frame">
+
+  <!-- Status Bar -->
+  <div class="phone-status">
+    <span id="fan-clock">21:38</span>
+    <div class="status-right">
+      <span>●●●●</span>
+      <span>WiFi</span>
+      <span>🔋 82%</span>
+    </div>
+  </div>
+
+  <!-- App Header -->
+  <div class="app-header">
+    <div class="app-header-top">
+      <div class="app-logo">
+        <div class="app-logo-icon">🌊</div>
+        <div class="app-logo-text">Flow<span>Sense</span></div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="updating-badge">
+          <span class="dot dot-ok"></span> Live
+        </div>
+        <div class="app-notif-bell">
+          🔔
+          <div class="notif-badge">3</div>
+        </div>
+      </div>
+    </div>
+    <div class="venue-tag">
+      🏟 M. Chinnaswamy Stadium &nbsp;
+      <div class="live-chip"><span class="dot dot-critical" style="width:5px;height:5px;"></span> LIVE</div>
+    </div>
+  </div>
+
+  <!-- App Content -->
+  <div class="app-content">
+
+    <!-- Current Zone -->
+    <div class="zone-card">
+      <div class="zone-card-label">📍 Your Current Zone</div>
+      <div class="zone-card-name">Club House / Pavilion</div>
+      <div style="font-size:12px; color:var(--text-secondary);">Gate C &nbsp;·&nbsp; East Stand</div>
+      <div class="zone-card-meta">
+        <div class="zone-density-col">
+          <span class="zone-density-label">Zone Density</span>
+          <span class="zone-density-val text-critical" id="fan-density">91%</span>
+          <div class="zone-mini-bar">
+            <div class="zone-mini-fill" style="width:91%; background:#FF2255;"></div>
+          </div>
+        </div>
+        <div class="zone-density-col" style="align-items:flex-end;">
+          <span class="zone-density-label">Gate Wait</span>
+          <span class="zone-density-val" style="font-size:16px;" id="fan-wait">~16 min</span>
+          <span class="badge badge-critical">CRITICAL</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Banner -->
+    <div class="alert-banner">
+      <div class="alert-banner-icon">🚨</div>
+      <div>
+        <div class="alert-banner-title">Zone overloaded — rerouting recommended</div>
+        <div class="alert-banner-body">Your zone is at 91% capacity. FlowSense AI has identified a faster route saving up to 12 minutes.</div>
+      </div>
+    </div>
+
+    <!-- Route Suggestion -->
+    <div class="route-card">
+      <div class="route-label">🔀 Smart Route Recommendation</div>
+      <div class="route-suggestion">
+        <div class="route-icon">🟢</div>
+        <div class="route-text">
+          <div class="route-gate">Gate D → South Stand</div>
+          <div class="route-detail">3 min walk &nbsp;·&nbsp; Zone at 78%</div>
+        </div>
+        <span class="route-saving">Save ~8 min</span>
+      </div>
+      <div class="route-suggestion">
+        <div class="route-icon">🟡</div>
+        <div class="route-text">
+          <div class="route-gate">Gate E → SW Block</div>
+          <div class="route-detail">5 min walk &nbsp;·&nbsp; Zone at 55%</div>
+        </div>
+        <span class="route-saving">Save ~12 min</span>
+      </div>
+      <button class="navigate-btn" id="navigate-btn" onclick="startNavigation()">🧭 Navigate to Gate D →</button>
+    </div>
+
+    <!-- Queue Times -->
+    <div class="queues-card">
+      <div class="card-title">⏱ Live Queue Times</div>
+      <div class="queue-row">
+        <div class="queue-name"><span class="queue-icon">🍟</span> Food Stall F3</div>
+        <div>
+          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:85%; background:#FF6030;"></div></div>
+          <div class="queue-wait text-danger" id="q1">18 min</div>
+        </div>
+      </div>
+      <div class="queue-row">
+        <div class="queue-name"><span class="queue-icon">🍺</span> Beverages B2</div>
+        <div>
+          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:60%; background:#FFD60A;"></div></div>
+          <div class="queue-wait text-warning" id="q2">11 min</div>
+        </div>
+      </div>
+      <div class="queue-row">
+        <div class="queue-name"><span class="queue-icon">🛍</span> Merchandise M1</div>
+        <div>
+          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:40%; background:#00E6A0;"></div></div>
+          <div class="queue-wait text-ok" id="q3">6 min</div>
+        </div>
+      </div>
+      <div class="queue-row">
+        <div class="queue-name"><span class="queue-icon">🚻</span> Restroom R4</div>
+        <div>
+          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:88%; background:#FF2255;"></div></div>
+          <div class="queue-wait text-critical" id="q4">Full</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Push Notifications -->
+    <div class="notifs-card">
+      <div class="card-title">📡 FlowSense Notifications</div>
+      <div class="fan-notif">
+        <div class="fan-notif-icon" style="background:rgba(255,34,85,0.12);">🚨</div>
+        <div>
+          <div class="fn-title">Zone alert — Club House</div>
+          <div class="fn-body">Your zone is critically overcrowded. Please use Gate D for a faster experience.</div>
+          <div class="fn-time">21:36 IST</div>
+        </div>
+      </div>
+      <div class="fan-notif">
+        <div class="fan-notif-icon" style="background:rgba(255,214,10,0.12);">⚠️</div>
+        <div>
+          <div class="fn-title">Innings break in ~22 min</div>
+          <div class="fn-body">Concession queues will spike. Consider visiting food stalls now to avoid long waits.</div>
+          <div class="fn-time">21:33 IST</div>
+        </div>
+      </div>
+      <div class="fan-notif">
+        <div class="fan-notif-icon" style="background:rgba(0,230,160,0.12);">✅</div>
+        <div>
+          <div class="fn-title">Gate B now open</div>
+          <div class="fn-body">Gate B auxiliary lane is now open. Wait time reduced to 4 minutes.</div>
+          <div class="fn-time">21:28 IST</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="phone-bottom-nav">
+    <button class="nav-tab active">
+      <div class="nav-tab-icon">🏠</div>
+      <div class="nav-tab-label">Home</div>
+    </button>
+    <button class="nav-tab">
+      <div class="nav-tab-icon">🗺</div>
+      <div class="nav-tab-label">Map</div>
+    </button>
+    <button class="nav-tab">
+      <div class="nav-tab-icon">🔔</div>
+      <div class="nav-tab-label">Alerts</div>
+    </button>
+    <button class="nav-tab">
+      <div class="nav-tab-icon">🍔</div>
+      <div class="nav-tab-label">Queues</div>
+    </button>
+    <button class="nav-tab">
+      <div class="nav-tab-icon">👤</div>
+      <div class="nav-tab-label">Profile</div>
+    </button>
+  </div>
+
+  <!-- Home Indicator -->
+  <div class="phone-home"><div class="home-bar"></div></div>
+</div>
+
+<div class="device-label">
+  Simulated fan experience &nbsp;·&nbsp; FlowSense AI Fan App v1.0<br>
+  <a href="index.html" style="color:var(--accent); font-size:12px; text-decoration:none; margin-top:4px; display:inline-block;">← Return to Ops Dashboard</a>
+</div>
+
+<script>
+  // Live clock
+  function updateFanClock() {
+    const now = new Date();
+    document.getElementById('fan-clock').textContent = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+  }
+  updateFanClock();
+  setInterval(updateFanClock, 5000);
+
+  // Micro live-update simulation
+  setInterval(() => {
+    const density = 88 + Math.round(Math.random() * 6);
+    const densEl = document.getElementById('fan-density');
+    if (densEl) densEl.textContent = `${density}%`;
+
+    const waitEl = document.getElementById('fan-wait');
+    if (waitEl) {
+      const wait = 14 + Math.round(Math.random() * 5);
+      waitEl.textContent = `~${wait} min`;
+    }
+
+    const q1 = document.getElementById('q1');
+    if (q1) q1.textContent = `${16 + Math.round(Math.random() * 5)} min`;
+    const q2 = document.getElementById('q2');
+    if (q2) q2.textContent = `${9 + Math.round(Math.random() * 4)} min`;
+    const q3 = document.getElementById('q3');
+    if (q3) q3.textContent = `${4 + Math.round(Math.random() * 4)} min`;
+  }, 3000);
+
+  // Navigate button
+  function startNavigation() {
+    const btn = document.getElementById('navigate-btn');
+    btn.textContent = '✅ Navigation started — follow blue arrows';
+    btn.style.background = 'linear-gradient(135deg, #0044FF, #00BFFF)';
+    setTimeout(() => {
+      btn.textContent = '🧭 Navigate to Gate D →';
+      btn.style.background = '';
+    }, 3000);
+  }
+</script>
+</body>
+</html>

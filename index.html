@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlowSense AI — Ops Dashboard | M. Chinnaswamy Stadium</title>
+  <meta name="description" content="Real-time crowd intelligence operations center for M. Chinnaswamy Stadium. Live density monitoring, congestion alerts, and smart fan routing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+
+<div class="dashboard-grid">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="dash-header">
+    <a href="landing.html" class="logo">
+      <div class="logo-icon">🌊</div>
+      <div class="logo-text">Flow<span>Sense</span> AI</div>
+    </a>
+    <div class="header-venue">
+      <span class="venue-name">M. Chinnaswamy Stadium</span>
+      <span class="venue-city">Bengaluru, Karnataka</span>
+    </div>
+
+    <div class="header-spacer"></div>
+
+    <div class="header-kpis">
+      <div class="hkpi">
+        <span class="hkpi-label">In Venue</span>
+        <span class="kpi-value mono text-accent" id="kpi-fans">—</span>
+      </div>
+      <div class="hkpi">
+        <span class="hkpi-label">Avg Wait</span>
+        <span class="kpi-value mono" id="kpi-wait">—</span>
+      </div>
+      <div class="hkpi">
+        <span class="hkpi-label">Active Alerts</span>
+        <span class="kpi-value mono text-critical" id="kpi-alerts">—</span>
+      </div>
+      <div class="hkpi">
+        <span class="hkpi-label">Safety Score</span>
+        <span class="kpi-value mono" id="kpi-safety">—</span>
+      </div>
+      <div class="hkpi">
+        <span class="hkpi-label">Resolved</span>
+        <span class="kpi-value mono text-ok" id="kpi-resolved">—</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="live-badge">
+        <span class="dot dot-critical"></span>
+        LIVE
+      </div>
+      <span id="live-clock" class="mono"></span>
+    </div>
+  </header>
+
+  <!-- ── Left: Zone List ────────────────────────────────────────────────── -->
+  <aside class="dash-left">
+    <div class="sidebar-title">Stadium Capacity</div>
+    <div class="capacity-card">
+      <div class="cap-row">
+        <span class="cap-label">Overall Fill</span>
+        <span class="mono text-accent" id="stadium-fill-pct" style="font-size:13px; font-weight:700;">—</span>
+      </div>
+      <div class="density-bar">
+        <div id="stadium-fill-bar" class="density-fill" style="width:0%; background: linear-gradient(90deg,var(--ok),var(--warning));"></div>
+      </div>
+      <div class="cap-meta">
+        <span>0</span>
+        <span>38,000 capacity</span>
+      </div>
+    </div>
+
+    <div class="sidebar-title" style="margin-top:4px;">Zone Status</div>
+    <div id="zone-list"></div>
+  </aside>
+
+  <!-- ── Center: Heatmap + Controls ─────────────────────────────────────── -->
+  <main class="dash-center">
+    <div class="match-info-bar">
+      <span class="match-name">🏏 RCB vs CSK — IPL 2025</span>
+      <div class="match-meta">
+        <span id="match-phase" class="mono">FIRST INNINGS</span>
+        <span class="text-dim mono" style="font-size:11px;" id="match-minute">Min 35</span>
+        <span class="badge badge-warning">19:30 IST</span>
+      </div>
+    </div>
+
+    <div class="heatmap-wrapper glass-card" style="padding:8px; position:relative;">
+      <canvas id="stadium-canvas"></canvas>
+    </div>
+
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#00E6A0;"></div> Normal (&lt;60%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FFD60A;"></div> Elevated (60–75%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF6030;"></div> High (75–90%)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FF2255;"></div> Critical (&gt;90%)</div>
+    </div>
+
+    <div class="controls-bar">
+      <button id="pitch-btn" class="control-btn">🎤 Pitch Mode</button>
+      <button id="fan-app-btn" class="control-btn">📱 Fan App</button>
+      <button id="emergency-btn" class="control-btn">🚨 Trigger Emergency</button>
+      <div class="speed-control">
+        <span>Speed:</span>
+        <select id="sim-speed">
+          <option value="0.5">0.5×</option>
+          <option value="1" selected>1×</option>
+          <option value="2">2×</option>
+          <option value="5">5×</option>
+        </select>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Right: Alerts + Routing + Notifications ────────────────────────── -->
+  <aside class="dash-right">
+    <div class="section-header">
+      <span class="sidebar-title" style="margin:0">⚠ Active Alerts</span>
+      <span class="alert-count" id="kpi-alerts-badge">0</span>
+    </div>
+    <div id="alert-feed"></div>
+
+    <div class="section-header" style="margin-top:8px;">
+      <span class="sidebar-title" style="margin:0">🔀 Smart Routing</span>
+    </div>
+    <div id="routing-panel"></div>
+
+    <div class="section-header" style="margin-top:8px;">
+      <span class="sidebar-title" style="margin:0">📡 Live Feed</span>
+    </div>
+    <div id="notif-feed"></div>
+  </aside>
+
+  <!-- ── Bottom Ticker ──────────────────────────────────────────────────── -->
+  <footer class="dash-ticker">
+    <span class="ticker-label">FlowSense Live</span>
+    <div id="notif-ticker">
+      <span class="dot dot-ok"></span>
+      <span>Initialising FlowSense AI…</span>
+    </div>
+  </footer>
+
+</div>
+
+<script src="js/simulation.js"></script>
+<script src="js/heatmap.js"></script>
+<script src="js/pitch.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
