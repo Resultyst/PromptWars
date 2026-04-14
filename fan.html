@@ -440,9 +440,169 @@
     .fan-section-divider::before, .fan-section-divider::after {
       content: ''; flex: 1; height: 1px; background: var(--border);
     }
+
+    /* Evacuation Overlay */
+    #evac-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 34, 85, 0.95);
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+      backdrop-filter: blur(10px);
+      animation: flashRed 1s infinite alternate;
+    }
+    #evac-overlay.active { display: flex; }
+    @keyframes flashRed {
+      from { background: rgba(255, 34, 85, 0.9); }
+      to   { background: rgba(255, 34, 85, 1); }
+    }
+    .evac-title { font-family: var(--font-display); font-size: 42px; font-weight: 900; color: #fff; margin-bottom: 20px; }
+    .evac-body { font-size: 18px; color: rgba(255,255,255,0.9); line-height: 1.6; max-width: 300px; }
+
+    /* ── Tab System ──────────────────────────────────────────────── */
+    .app-viewport {
+      width: 100%;
+      flex: 1;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .tab-container {
+      display: flex;
+      width: 500%; /* 5 tabs */
+      height: 100%;
+      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-panel {
+      width: 20%; /* 1/5 of container */
+      padding: 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 680px;
+      flex-shrink: 0;
+    }
+
+    /* Map Styles */
+    .map-svg-wrap {
+      width: 100%;
+      aspect-ratio: 1;
+      background: rgba(0,0,0,0.2);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      padding: 20px;
+      display: grid;
+      place-items: center;
+    }
+
+    .map-zone {
+      transition: fill 0.5s ease;
+      cursor: pointer;
+    }
+
+    .map-labels text {
+      font-size: 10px;
+      font-weight: 700;
+      fill: rgba(255,255,255,0.5);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    /* Queue Ranking */
+    .queue-rank-card {
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rank-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(255,255,255,1.5%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: all 0.3s;
+    }
+
+    .rank-pos {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-right: 8px;
+    }
+
+    /* Alerts Tab */
+    .alerts-history {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Profile Tab */
+    .profile-card {
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(238,242,255,0.05), rgba(0,0,0,0.2));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      text-align: center;
+    }
+
+    .profile-avatar {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--ok));
+      margin: 0 auto 16px;
+      display: grid; place-items: center;
+      font-size: 32px;
+      border: 4px solid var(--bg-card);
+      box-shadow: 0 0 20px rgba(0,191,255,0.3);
+    }
+
+    .profile-name { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .profile-meta { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+
+    .ticket-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: rgba(0,191,255,0.1);
+      border: 1px solid rgba(0,191,255,0.2);
+      border-radius: 100px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
   </style>
 </head>
 <body>
+
+<div id="evac-overlay">
+  <div style="font-size: 64px; margin-bottom: 20px;">🚨</div>
+  <div class="evac-title">EVACUATE IMMEDIATELY</div>
+  <p class="evac-body">Emergency mode activated. Please proceed to the nearest exit (Gate D or E) calmly but quickly.</p>
+  <div style="margin-top: 40px; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 1px;">Follow illuminated signs</div>
+</div>
 
 <!-- Top Nav -->
 <div class="fan-nav">
@@ -488,144 +648,157 @@
     </div>
   </div>
 
-  <!-- App Content -->
-  <div class="app-content">
-
-    <!-- Current Zone -->
-    <div class="zone-card">
-      <div class="zone-card-label">📍 Your Current Zone</div>
-      <div class="zone-card-name">Club House / Pavilion</div>
-      <div style="font-size:12px; color:var(--text-secondary);">Gate C &nbsp;·&nbsp; East Stand</div>
-      <div class="zone-card-meta">
-        <div class="zone-density-col">
-          <span class="zone-density-label">Zone Density</span>
-          <span class="zone-density-val text-critical" id="fan-density">91%</span>
-          <div class="zone-mini-bar">
-            <div class="zone-mini-fill" style="width:91%; background:#FF2255;"></div>
+  <!-- App Viewport -->
+  <div class="app-viewport">
+    <div class="tab-container" id="tab-container">
+      
+      <!-- TAB 1: HOME -->
+      <div class="tab-panel" id="tab-home">
+        <!-- Current Zone -->
+        <div class="zone-card">
+          <div class="zone-card-label">📍 Your Current Zone</div>
+          <div class="zone-card-name">Club House / Pavilion</div>
+          <div style="font-size:12px; color:var(--text-secondary);">Gate C &nbsp;·&nbsp; East Stand</div>
+          <div class="zone-card-meta">
+            <div class="zone-density-col">
+              <span class="zone-density-label">Zone Density</span>
+              <span class="zone-density-val text-critical" id="fan-density">91%</span>
+              <div class="zone-mini-bar">
+                <div class="zone-mini-fill" style="width:91%; background:#FF2255;"></div>
+              </div>
+            </div>
+            <div class="zone-density-col" style="align-items:flex-end;">
+              <span class="zone-density-label">Gate Wait</span>
+              <span class="zone-density-val" style="font-size:16px;" id="fan-wait">~16 min</span>
+              <span class="badge badge-critical">CRITICAL</span>
+            </div>
           </div>
         </div>
-        <div class="zone-density-col" style="align-items:flex-end;">
-          <span class="zone-density-label">Gate Wait</span>
-          <span class="zone-density-val" style="font-size:16px;" id="fan-wait">~16 min</span>
-          <span class="badge badge-critical">CRITICAL</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- Alert Banner -->
-    <div class="alert-banner">
-      <div class="alert-banner-icon">🚨</div>
-      <div>
-        <div class="alert-banner-title">Zone overloaded — rerouting recommended</div>
-        <div class="alert-banner-body">Your zone is at 91% capacity. FlowSense AI has identified a faster route saving up to 12 minutes.</div>
-      </div>
-    </div>
+        <!-- Alert Banner -->
+        <div class="alert-banner">
+          <div class="alert-banner-icon">🚨</div>
+          <div>
+            <div class="alert-banner-title">Zone overloaded — rerouting recommended</div>
+            <div class="alert-banner-body">Your zone is at 91% capacity. FlowSense AI has identified a faster route saving up to 12 minutes.</div>
+          </div>
+        </div>
 
-    <!-- Route Suggestion -->
-    <div class="route-card">
-      <div class="route-label">🔀 Smart Route Recommendation</div>
-      <div class="route-suggestion">
-        <div class="route-icon">🟢</div>
-        <div class="route-text">
-          <div class="route-gate">Gate D → South Stand</div>
-          <div class="route-detail">3 min walk &nbsp;·&nbsp; Zone at 78%</div>
+        <!-- Route Suggestion -->
+        <div class="route-card">
+          <div class="route-label">🔀 Smart Route Recommendation</div>
+          <div class="route-suggestion">
+            <div class="route-icon">🟢</div>
+            <div class="route-text">
+              <div class="route-gate">Gate D → South Stand</div>
+              <div class="route-detail">3 min walk &nbsp;·&nbsp; Zone at 78%</div>
+            </div>
+            <span class="route-saving">Save ~8 min</span>
+          </div>
+          <div class="route-suggestion">
+            <div class="route-icon">🟡</div>
+            <div class="route-text">
+              <div class="route-gate">Gate E → SW Block</div>
+              <div class="route-detail">5 min walk &nbsp;·&nbsp; Zone at 55%</div>
+            </div>
+            <span class="route-saving">Save ~12 min</span>
+          </div>
+          <button class="navigate-btn" id="navigate-btn" onclick="startNavigation()">🧭 Navigate to Gate D →</button>
         </div>
-        <span class="route-saving">Save ~8 min</span>
-      </div>
-      <div class="route-suggestion">
-        <div class="route-icon">🟡</div>
-        <div class="route-text">
-          <div class="route-gate">Gate E → SW Block</div>
-          <div class="route-detail">5 min walk &nbsp;·&nbsp; Zone at 55%</div>
-        </div>
-        <span class="route-saving">Save ~12 min</span>
-      </div>
-      <button class="navigate-btn" id="navigate-btn" onclick="startNavigation()">🧭 Navigate to Gate D →</button>
-    </div>
 
-    <!-- Queue Times -->
-    <div class="queues-card">
-      <div class="card-title">⏱ Live Queue Times</div>
-      <div class="queue-row">
-        <div class="queue-name"><span class="queue-icon">🍟</span> Food Stall F3</div>
-        <div>
-          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:85%; background:#FF6030;"></div></div>
-          <div class="queue-wait text-danger" id="q1">18 min</div>
+        <!-- Notification Card (Home Feed) -->
+        <div class="notifs-card">
+          <div class="card-title">📡 Live Sync Messages</div>
         </div>
       </div>
-      <div class="queue-row">
-        <div class="queue-name"><span class="queue-icon">🍺</span> Beverages B2</div>
-        <div>
-          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:60%; background:#FFD60A;"></div></div>
-          <div class="queue-wait text-warning" id="q2">11 min</div>
-        </div>
-      </div>
-      <div class="queue-row">
-        <div class="queue-name"><span class="queue-icon">🛍</span> Merchandise M1</div>
-        <div>
-          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:40%; background:#00E6A0;"></div></div>
-          <div class="queue-wait text-ok" id="q3">6 min</div>
-        </div>
-      </div>
-      <div class="queue-row">
-        <div class="queue-name"><span class="queue-icon">🚻</span> Restroom R4</div>
-        <div>
-          <div class="queue-bar-wrap"><div class="queue-bar-fill" style="width:88%; background:#FF2255;"></div></div>
-          <div class="queue-wait text-critical" id="q4">Full</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- Push Notifications -->
-    <div class="notifs-card">
-      <div class="card-title">📡 FlowSense Notifications</div>
-      <div class="fan-notif">
-        <div class="fan-notif-icon" style="background:rgba(255,34,85,0.12);">🚨</div>
-        <div>
-          <div class="fn-title">Zone alert — Club House</div>
-          <div class="fn-body">Your zone is critically overcrowded. Please use Gate D for a faster experience.</div>
-          <div class="fn-time">21:36 IST</div>
+      <!-- TAB 2: MAP -->
+      <div class="tab-panel" id="tab-map">
+        <h2 class="card-title">🏟 Interactive Crowd Map</h2>
+        <div class="map-svg-wrap">
+          <svg viewBox="0 0 400 400" width="300" height="300">
+            <!-- Background grass -->
+            <circle cx="200" cy="200" r="110" fill="rgba(0,180,80,0.15)"/>
+            <!-- Zones -->
+            <g class="map-zones">
+              <path id="svg-north" class="map-zone" d="M200,40 A160,160 0 0,1 280,60 L240,97 A103,103 0 0,0 200,90 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-northeast" class="map-zone" d="M280,60 A160,160 0 0,1 360,140 L303,165 A103,103 0 0,0 240,97 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-east" class="map-zone" d="M360,140 A160,160 0 0,1 360,260 L303,235 A103,103 0 0,0 303,165 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-south" class="map-zone" d="M360,260 A160,160 0 0,1 280,340 L240,303 A103,103 0 0,0 303,235 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-southwest" class="map-zone" d="M280,340 A160,160 0 0,1 120,340 L160,303 A103,103 0 0,0 240,303 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-west" class="map-zone" d="M120,340 A160,160 0 0,1 40,200 L90,200 A110,110 0 0,0 160,303 Z" fill="rgba(255,255,255,0.1)"/>
+              <path id="svg-northwest" class="map-zone" d="M40,200 A160,160 0 0,1 200,40 L200,90 A110,110 0 0,0 90,200 Z" fill="rgba(255,255,255,0.1)"/>
+            </g>
+            <!-- Labels -->
+            <g class="map-labels">
+              <text x="200" y="30" text-anchor="middle">North</text>
+              <text x="350" y="200" text-anchor="middle" transform="rotate(90, 350, 200)">East Stand</text>
+              <text x="200" y="380" text-anchor="middle">South</text>
+              <text x="50" y="200" text-anchor="middle" transform="rotate(-90, 50, 200)">West Stand</text>
+            </g>
+          </svg>
+        </div>
+        <div class="legend" style="display:flex; justify-content:center; gap:12px; margin-top:10px;">
+          <div class="legend-item"><span class="dot dot-ok"></span> Safe</div>
+          <div class="legend-item"><span class="dot dot-warning"></span> Elevated</div>
+          <div class="legend-item"><span class="dot dot-critical"></span> Critical</div>
         </div>
       </div>
-      <div class="fan-notif">
-        <div class="fan-notif-icon" style="background:rgba(255,214,10,0.12);">⚠️</div>
-        <div>
-          <div class="fn-title">Innings break in ~22 min</div>
-          <div class="fn-body">Concession queues will spike. Consider visiting food stalls now to avoid long waits.</div>
-          <div class="fn-time">21:33 IST</div>
-        </div>
-      </div>
-      <div class="fan-notif">
-        <div class="fan-notif-icon" style="background:rgba(0,230,160,0.12);">✅</div>
-        <div>
-          <div class="fn-title">Gate B now open</div>
-          <div class="fn-body">Gate B auxiliary lane is now open. Wait time reduced to 4 minutes.</div>
-          <div class="fn-time">21:28 IST</div>
-        </div>
-      </div>
-    </div>
 
+      <!-- TAB 3: ALERTS -->
+      <div class="tab-panel" id="tab-alerts">
+        <h2 class="card-title">⚠️ Safety Alerts History</h2>
+        <div class="alerts-history" id="alerts-history">
+          <div class="empty-state" style="padding:40px; text-align:center; color:var(--text-dim);">No alerts yet. Syncing with dashboard...</div>
+        </div>
+      </div>
+
+      <!-- TAB 4: QUEUES -->
+      <div class="tab-panel" id="tab-queues">
+        <h2 class="card-title">⏱ Concession & Entry Times</h2>
+        <div class="queue-rank-card" id="queues-list">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 5: PROFILE -->
+      <div class="tab-panel" id="tab-profile">
+        <h2 class="card-title">👤 Your Fan Profile</h2>
+        <div class="profile-card">
+          <div class="profile-avatar">🤴</div>
+          <div class="profile-name">Resultyst User</div>
+          <div class="profile-meta">Premium Member &nbsp;·&nbsp; Ticket #IPL-2025-G42</div>
+          <div style="margin: 20px 0; display:flex; flex-direction:column; gap:8px;">
+            <div class="ticket-badge">📍 Zone: Club House (East)</div>
+            <div class="ticket-badge">🎟 Seat: Block E, Row 4, G42</div>
+            <div class="ticket-badge">📅 Event: RCB vs CSK</div>
+          </div>
+          <div style="font-size:11px; color:var(--text-dim); margin-top:10px;">Member since 2021</div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- Bottom Navigation -->
   <div class="phone-bottom-nav">
-    <button class="nav-tab active">
+    <button class="nav-tab active" onclick="switchTab(0)">
       <div class="nav-tab-icon">🏠</div>
       <div class="nav-tab-label">Home</div>
     </button>
-    <button class="nav-tab">
+    <button class="nav-tab" onclick="switchTab(1)">
       <div class="nav-tab-icon">🗺</div>
       <div class="nav-tab-label">Map</div>
     </button>
-    <button class="nav-tab">
+    <button class="nav-tab" onclick="switchTab(2)">
       <div class="nav-tab-icon">🔔</div>
       <div class="nav-tab-label">Alerts</div>
     </button>
-    <button class="nav-tab">
+    <button class="nav-tab" onclick="switchTab(3)">
       <div class="nav-tab-icon">🍔</div>
       <div class="nav-tab-label">Queues</div>
     </button>
-    <button class="nav-tab">
+    <button class="nav-tab" onclick="switchTab(4)">
       <div class="nav-tab-icon">👤</div>
       <div class="nav-tab-label">Profile</div>
     </button>
@@ -640,8 +813,13 @@
   <a href="index.html" style="color:var(--accent); font-size:12px; text-decoration:none; margin-top:4px; display:inline-block;">← Return to Ops Dashboard</a>
 </div>
 
+<script src="js/bridge.js"></script>
 <script>
-  // Live clock
+  // ── Globals & State ───────────────────────────────────────────────────────
+  let currentTabIndex = 0;
+  const seenAlerts = new Set();
+  
+  // ── Live Clock ────────────────────────────────────────────────────────────
   function updateFanClock() {
     const now = new Date();
     document.getElementById('fan-clock').textContent = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
@@ -649,27 +827,133 @@
   updateFanClock();
   setInterval(updateFanClock, 5000);
 
-  // Micro live-update simulation
-  setInterval(() => {
-    const density = 88 + Math.round(Math.random() * 6);
-    const densEl = document.getElementById('fan-density');
-    if (densEl) densEl.textContent = `${density}%`;
+  // ── Tab Switching ─────────────────────────────────────────────────────────
+  function switchTab(index) {
+    currentTabIndex = index;
+    const container = document.getElementById('tab-container');
+    container.style.transform = `translateX(-${index * 20}%)`;
+    
+    // Update nav active states
+    const tabs = document.querySelectorAll('.nav-tab');
+    tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+  }
 
-    const waitEl = document.getElementById('fan-wait');
-    if (waitEl) {
-      const wait = 14 + Math.round(Math.random() * 5);
-      waitEl.textContent = `~${wait} min`;
-    }
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  function densityColor(d) {
+    if (d >= 0.90) return '#FF2255'; // critical
+    if (d >= 0.75) return '#FF6030'; // danger
+    if (d >= 0.60) return '#FFD60A'; // warning
+    return '#00E6A0'; // ok
+  }
 
-    const q1 = document.getElementById('q1');
-    if (q1) q1.textContent = `${16 + Math.round(Math.random() * 5)} min`;
-    const q2 = document.getElementById('q2');
-    if (q2) q2.textContent = `${9 + Math.round(Math.random() * 4)} min`;
-    const q3 = document.getElementById('q3');
-    if (q3) q3.textContent = `${4 + Math.round(Math.random() * 4)} min`;
-  }, 3000);
+  // ── FlowBridge Real-time Sync ─────────────────────────────────────────────
+  if (window.FlowBridge) {
+    window.FlowBridge.onState((state) => {
+      console.log('Fan App Sync', state);
+      
+      // 1. Emergency Mode
+      const evacOverlay = document.getElementById('evac-overlay');
+      if (state.emergencyMode) {
+        evacOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      } else {
+        evacOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
 
-  // Navigate button
+      // 2. Home Tab: Current Zone Update
+      const myZone = state.zones['east']; // Assuming fan is in East Stand
+      if (myZone) {
+        const dPct = Math.round(myZone.density * 100);
+        const densEl = document.getElementById('fan-density');
+        densEl.textContent = `${dPct}%`;
+        densEl.style.color = densityColor(myZone.density);
+        document.querySelector('.zone-mini-fill').style.width = `${dPct}%`;
+        document.querySelector('.zone-mini-fill').style.background = densityColor(myZone.density);
+        document.getElementById('fan-wait').textContent = `~${myZone.waitTime} min`;
+      }
+
+      // 3. Map Tab: SVG Dynamic Colors
+      Object.keys(state.zones).forEach(zid => {
+        const svgEl = document.getElementById(`svg-${zid}`);
+        if (svgEl) {
+          svgEl.style.fill = densityColor(state.zones[zid].density);
+          svgEl.style.fillOpacity = '0.5';
+        }
+      });
+
+      // 4. Alerts Tab (History) + Home Notifications
+      const historyWrap = document.getElementById('alerts-history');
+      const homeNotifWrap = document.querySelector('.notifs-card');
+      
+      state.alerts.forEach(alert => {
+        if (!seenAlerts.has(alert.id)) {
+          seenAlerts.add(alert.id);
+          
+          // Add to History
+          if (historyWrap.querySelector('.empty-state')) historyWrap.innerHTML = '';
+          const card = document.createElement('div');
+          card.className = 'fan-notif glass-card';
+          card.style.padding = '12px';
+          card.style.marginBottom = '8px';
+          
+          const icon = alert.severity === 'critical' ? '🚨' : alert.severity === 'danger' ? '⚠️' : '✅';
+          card.innerHTML = `
+            <div style="display:flex; gap:12px;">
+              <div style="font-size:20px">${icon}</div>
+              <div style="flex:1">
+                <div style="font-size:13px; font-weight:700; color:#fff">${alert.zoneName}</div>
+                <div style="font-size:12px; color:var(--text-secondary); margin:2px 0">${alert.message}</div>
+                <div style="font-size:10px; color:var(--text-dim); font-family:var(--font-mono)">${new Date(alert.ts).toLocaleTimeString()}</div>
+              </div>
+            </div>
+          `;
+          historyWrap.prepend(card);
+
+          // Add to Home Feed
+          const homeNotif = card.cloneNode(true);
+          const homeTitle = homeNotifWrap.querySelector('.card-title');
+          homeTitle.insertAdjacentElement('afterend', homeNotif);
+          
+          // Update Badge
+          const badge = document.querySelector('.notif-badge');
+          badge.textContent = parseInt(badge.textContent) + 1;
+        }
+      });
+
+      // 5. Queues Tab: Ranked List
+      const qList = document.getElementById('queues-list');
+      qList.innerHTML = '';
+      const rankedZones = Object.values(state.zones).sort((a, b) => a.concessionWait - b.concessionWait);
+      
+      rankedZones.forEach((rz, idx) => {
+        const item = document.createElement('div');
+        item.className = 'rank-item';
+        item.innerHTML = `
+          <div style="display:flex; align-items:center;">
+            <div class="rank-pos">${idx + 1}</div>
+            <div>
+              <div style="font-size:13px; font-weight:700; color:#fff">${rz.name}</div>
+              <div style="font-size:11px; color:var(--text-dim)">${rz.gate}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:14px; font-weight:700; color:${densityColor(rz.density)}">~${rz.concessionWait} min</div>
+            <div style="font-size:9px; color:var(--text-dim); text-transform:uppercase">Concession</div>
+          </div>
+        `;
+        qList.appendChild(item);
+      });
+    });
+  }
+
+  // ── Map Interactions ──────────────────────────────────────────────────────
+  document.querySelectorAll('.map-zone').forEach(zone => {
+    zone.addEventListener('mouseenter', () => zone.style.fillOpacity = '0.8');
+    zone.addEventListener('mouseleave', () => zone.style.fillOpacity = '0.5');
+  });
+
+  // ── Actions ───────────────────────────────────────────────────────────────
   function startNavigation() {
     const btn = document.getElementById('navigate-btn');
     btn.textContent = '✅ Navigation started — follow blue arrows';

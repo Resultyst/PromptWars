@@ -607,3 +607,58 @@ body.emergency-mode #match-phase { color: var(--critical); animation: pulse 0.8s
     grid-template-columns: 230px 1fr 260px;
   }
 }
+/* ── AI Prediction Widget ─────────────────────────────────────────── */
+.prediction-widget {
+  padding: 6px 12px;
+  background: rgba(0, 191, 255, 0.08);
+  border: 1px solid rgba(0, 191, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  transition: all 0.3s ease;
+}
+
+.prediction-label {
+  color: var(--accent);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  background: rgba(0, 191, 255, 0.1);
+  border-radius: 4px;
+}
+
+.prediction-text {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.prediction-timer {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.surge-warning {
+  background: rgba(255, 214, 10, 0.15) !important;
+  border-color: rgba(255, 214, 10, 0.5) !important;
+  animation: surgePulse 1s infinite alternate;
+}
+
+.surge-warning .prediction-label {
+  background: var(--warning);
+  color: #000;
+}
+
+.surge-warning .prediction-timer {
+  color: var(--warning);
+}
+
+@keyframes surgePulse {
+  from { box-shadow: 0 0 5px rgba(255, 214, 10, 0.2); }
+  to   { box-shadow: 0 0 15px rgba(255, 214, 10, 0.4); }
+}

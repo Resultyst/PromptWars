@@ -2,13 +2,75 @@
 
 document.addEventListener('DOMContentLoaded', () => {
   const { Simulation, HeatMap } = window;
-  const { state, STADIUM, bus, initSimulation, tick, densityColor, dismissAlert, triggerEmergency, resolveEmergency } = Simulation;
+  const { state, STADIUM, MATCH_EVENTS, bus, initSimulation, tick, densityColor, dismissAlert, triggerEmergency, resolveEmergency } = Simulation;
 
   // ── Init ──────────────────────────────────────────────────────────────────
   initSimulation();
   HeatMap.init(document.getElementById('stadium-canvas'));
+  if (window.StadiumAudio) window.StadiumAudio.init();
 
   const tickInterval = setInterval(() => tick(), 600);
+
+  // ── AI Prediction Widget ──────────────────────────────────────────────────
+  function updatePredictionWidget() {
+    const widget = document.getElementById('prediction-widget');
+    const textEl = widget.querySelector('.prediction-text');
+    const timerEl = widget.querySelector('.prediction-timer');
+
+    const nextEvent = MATCH_EVENTS.find(e => e.atMin > state.matchMinute);
+    
+    if (!nextEvent) {
+      textEl.textContent = 'No upcoming surges predicted';
+      timerEl.textContent = '--:--';
+      widget.classList.remove('surge-warning');
+      return;
+    }
+
+    // Calculate seconds remaining in SIMULATION time, converted to "dashboard wall time"
+    // (nextEvent.atMin - state.matchMinute) is minutes in sim time.
+    // Minutes * 60 = seconds in sim time.
+    // Simulation seconds / simSpeed = Real-world seconds remaining until event.
+    const realSecondsLeft = Math.max(0, (nextEvent.atMin - state.matchMinute) * 60 / state.simSpeed);
+    
+    if (realSecondsLeft === 0) {
+      textEl.textContent = 'Surge in progress';
+      timerEl.textContent = '00:00';
+      widget.classList.add('surge-warning');
+    } else {
+      const mins = Math.floor(realSecondsLeft / 60);
+      const secs = Math.floor(realSecondsLeft % 60);
+      const timerStr = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+      
+      const eventName = nextEvent.phase.replace(/-/g, ' ');
+      textEl.textContent = `Next surge: ${eventName} in`;
+      timerEl.textContent = timerStr;
+
+      // Pulse amber when within 60 real seconds of the event
+      if (realSecondsLeft <= 60) {
+        widget.classList.add('surge-warning');
+      } else {
+        widget.classList.remove('surge-warning');
+      }
+    }
+  }
+
+  // ── Audio Controls ────────────────────────────────────────────────────────
+  const muteBtn = document.getElementById('mute-btn');
+  if (muteBtn) {
+    muteBtn.addEventListener('click', () => {
+      if (window.StadiumAudio) {
+        window.StadiumAudio.resume();
+        const muted = window.StadiumAudio.toggleMute();
+        muteBtn.textContent = muted ? '🔇 Unmute' : '🔊 Mute';
+        muteBtn.classList.toggle('muted', muted);
+      }
+    });
+  }
+
+  // Resume audio on any interaction (browser policy)
+  document.addEventListener('click', () => {
+    if (window.StadiumAudio) window.StadiumAudio.resume();
+  }, { once: true });
 
   // ── Clock ─────────────────────────────────────────────────────────────────
   function updateClock() {
@@ -189,13 +251,30 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ── Bus listeners ─────────────────────────────────────────────────────────
-  bus.on('tick', () => { updateKPIs(); renderZones(); renderNotifTicker(); });
+  bus.on('tick', () => { 
+    updateKPIs(); 
+    renderZones(); 
+    renderNotifTicker(); 
+    updatePredictionWidget();
+    if (window.StadiumAudio) {
+      const fillPct = state.totalInVenue / STADIUM.totalCapacity;
+      window.StadiumAudio.setCrowdLevel(fillPct);
+    }
+  });
   bus.on('alert', () => { renderAlerts(); });
   bus.on('alertDismissed', () => { renderAlerts(); });
   bus.on('routing', () => { renderRouting(); });
   bus.on('notification', () => { renderNotifFeed(); renderNotifTicker(); });
-  bus.on('emergency', () => { renderAlerts(); renderZones(); });
-  bus.on('emergencyResolved', () => { renderAlerts(); renderZones(); });
+  bus.on('emergency', () => { 
+    renderAlerts(); 
+    renderZones(); 
+    if (window.StadiumAudio) window.StadiumAudio.triggerSiren(true);
+  });
+  bus.on('emergencyResolved', () => { 
+    renderAlerts(); 
+    renderZones(); 
+    if (window.StadiumAudio) window.StadiumAudio.triggerSiren(false);
+  });
 
   // ── First render ──────────────────────────────────────────────────────────
   updateKPIs();
@@ -204,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderRouting();
   renderNotifFeed();
   renderNotifTicker();
+  updatePredictionWidget();
 
   // ── Pitch Mode ────────────────────────────────────────────────────────────
   if (window.PitchMode) window.PitchMode.init();

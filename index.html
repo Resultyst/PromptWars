@@ -85,6 +85,11 @@
   <main class="dash-center">
     <div class="match-info-bar">
       <span class="match-name">🏏 RCB vs CSK — IPL 2025</span>
+      <div id="prediction-widget" class="prediction-widget">
+        <span class="prediction-label">AI Prediction</span>
+        <span class="prediction-text">Calculating next surge…</span>
+        <span class="prediction-timer mono">--:--</span>
+      </div>
       <div class="match-meta">
         <span id="match-phase" class="mono">FIRST INNINGS</span>
         <span class="text-dim mono" style="font-size:11px;" id="match-minute">Min 35</span>
@@ -104,8 +109,10 @@
     </div>
 
     <div class="controls-bar">
+      <button id="mute-btn" class="control-btn">🔊 Mute</button>
       <button id="pitch-btn" class="control-btn">🎤 Pitch Mode</button>
       <button id="fan-app-btn" class="control-btn">📱 Fan App</button>
+      <button id="cctv-btn" class="control-btn" onclick="window.open('cctv.html', '_blank')">📹 CCTV Feeds</button>
       <button id="emergency-btn" class="control-btn">🚨 Trigger Emergency</button>
       <div class="speed-control">
         <span>Speed:</span>
@@ -149,7 +156,9 @@
 
 </div>
 
+<script src="js/bridge.js"></script>
 <script src="js/simulation.js"></script>
+<script src="js/audio.js"></script>
 <script src="js/heatmap.js"></script>
 <script src="js/pitch.js"></script>
 <script src="js/app.js"></script>

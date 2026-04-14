@@ -177,9 +177,16 @@ function nudgeDensity(id, delta) {
   z.status = densityStatus(z.density);
   z.waitTime = Math.round(z.density * 18 + 2);
   z.concessionWait = Math.round(z.density * 15 + 3);
+  syncState();
 }
 
 // ── Alerts ───────────────────────────────────────────────────────────────────
+
+function syncState() {
+  if (window.FlowBridge) {
+    window.FlowBridge.broadcastState(state);
+  }
+}
 
 let _alertId = 100;
 function pushAlert(severity, zoneId, message, action) {
@@ -195,6 +202,13 @@ function pushAlert(severity, zoneId, message, action) {
   };
   state.alerts.unshift(alert);
   if (state.alerts.length > 30) state.alerts.length = 30;
+  
+  // AI PA Announcement for critical alerts
+  if (severity === 'critical' && window.StadiumAudio) {
+    window.StadiumAudio.announceAlert(message);
+  }
+
+  syncState();
   bus.emit('alert', alert);
 }
 
@@ -277,7 +291,10 @@ function tick() {
     const prevStatus = z._prevStatus;
     if (z.status !== prevStatus) {
       z._prevStatus = z.status;
-      if (z.status === 'critical') pushAlert('critical', def.id, `${z.name} has reached CRITICAL density (${Math.round(z.density*100)}%)`, 'routing');
+      if (z.status === 'critical') {
+        pushAlert('critical', def.id, `${z.name} has reached CRITICAL density (${Math.round(z.density*100)}%)`, 'routing');
+        if (window.StadiumAudio) window.StadiumAudio.triggerCheer();
+      }
       else if (z.status === 'danger') pushAlert('danger', def.id, `${z.name} density at ${Math.round(z.density*100)}% — action recommended`, 'routing');
     }
   });
@@ -305,6 +322,7 @@ function triggerEmergency(type='general') {
   pushAlert('critical','east','🚨 All personnel to emergency stations immediately', 'evacuate');
   pushNotif('critical','🚨 EMERGENCY MODE — Please follow illuminated exit routes calmly.');
   pushNotif('critical','All available security and medical personnel — report to command posts.');
+  syncState();
   bus.emit('emergency', { type });
 }
 
@@ -312,6 +330,7 @@ function resolveEmergency() {
   state.emergencyMode = false;
   state.matchPhase = 'first-innings';
   pushNotif('info','Emergency resolved. Returning to normal operations.');
+  syncState();
   bus.emit('emergencyResolved', {});
 }
 
@@ -331,4 +350,4 @@ function initSimulation() {
   bus.emit('tick', state);
 }
 
-window.Simulation = { state, STADIUM, ZONE_DEFS, ADJACENT, bus, initSimulation, tick, densityColor, densityStatus, pushAlert, dismissAlert, pushNotif, computeRouting, triggerEmergency, resolveEmergency, nudgeDensity };
+window.Simulation = { state, STADIUM, ZONE_DEFS, ADJACENT, MATCH_EVENTS, bus, initSimulation, tick, densityColor, densityStatus, pushAlert, dismissAlert, pushNotif, computeRouting, triggerEmergency, resolveEmergency, nudgeDensity };
